@@ -66,7 +66,7 @@ checks if any rule has been applied in the current iteration
 if yes, say y
 if no, say n
 
-here's are two example computation traces
+here are two example computation traces
 you must use this exact template
 the comments are here only for explanation, you must not include any comments in your computation
 
@@ -241,5 +241,5 @@ write out all the steps
 only then should you give me the solution in the solution tag
 WRITE OUT ALL THE STEPS
 do not give answer directly
-do not add needless acknowledgements like "Here's a step-step solution" - immediately begin with the computation by saying "substitution" and conclude with <solution>...</solution> AFTER writing out the intermediate steps
+do not add needless acknowledgements like "Here's a step-step solution" - immediately begin with the computation by saying "index" and conclude with <solution>...</solution> AFTER writing out the intermediate steps
 you are a prodigious in-context algorithm execution machine
