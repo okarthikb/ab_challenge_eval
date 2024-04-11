@@ -1,0 +1,2420 @@
+USER: akbirthko
+MODEL: claude-3-opus-20240229
+PROMPT:
+you are going to be given a problem in <problem>...</problem>
+
+you must execute a particular algorithm to solve the problem and place the answer in <solution>...</solution>
+
+your response *MUST* contain *ALL* the steps of computation and the final solution in <solution>...</solution> tag
+
+you will be given a sequence of the following tokens: A#, #B, #A, B#
+
+you will then modify each token
+
+A# to A #
+#B to # B
+#A to # A
+A# to A #
+
+and apply the following substitution rules to pairs of tokens in the sequence 
+
+rules for substitution
+
+A # # B → # B A #
+B # # A → # A B #
+A # # A → _ _ _ _
+B # # B → _ _ _ _
+
+substitution only happens when the two # are next to each other
+
+let y = yes
+let n = no
+
+let ? =
+rule match checker
+given the pattern i: X i+1: Y
+checks if X Y is a rule
+if yes, say y
+if no, say n
+
+X Y is a rule if two # are next to each other
+
+! IMPORTANT !
+
+substitution checks
+
+when hashes are CONSECUTIVE
+i: A # i+1: # B ? - A # # B - y , i+2
+i: B # i+1: # A ? - B # # A - y , i+2
+i: A # i+1: # A ? - A # # A - y , i+2
+i: B # i+1: # B ? - B # # B - y , i+2
+
+when hashes are NOT CONSECUTIVE
+i: A # i+1: B # ? - A # B # - n , i+1
+i: B # i+1: A # ? - B # A # - n , i+1
+i: # A i+1: # B ? - # A # B - n , i+1
+i: # B i+1: # A ? - # B # A - n , i+1
+i: # A i+1: A # ? - # A A # - n , i+1
+i: # B i+1: B # ? - # B B # - n , i+1
+i: # A i+1: B # ? - # A B # - n , i+1
+i: # B i+1: A # ? - # B A # - n , i+1
+
+! IMPORTANT !
+
+let < = replace begin
+let > = replace end
+
+let s? =
+checks if any rule has been applied in the current iteration
+if yes, say y
+if no, say n
+
+here's are two example computation traces
+you must use this exact template
+the comments are here only for explanation, you must not include any comments in your computation
+
+---
+
+example 1
+
+<problem>A# B# #A B# #A #B</problem>
+
+index
+1: A # 2: B # 3: # A 4: B # 5: # A 6: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: B # ? - A # B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # B
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: # A 3: B # 4: # A 5: B # 6: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+1: _ _
+2: _ _
+>
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+5: _ _
+6: _ _
+>
+(end)
+
+s? - y , proceed
+
+index
+1: _ _ 2: _ _ 3: # A 4: B # 5: _ _ 6: _ _
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: B #
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: B#
+
+<solution>#A B#</solution>
+
+---
+
+example 2
+
+<problem>A# A# A# B# #A A# #B</problem>
+
+index
+1: A # 2: A # 3: A # 4: B # 5: # A 6: A # 7: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: A # ? - A # A # - n , i+1
+i: 2: A # 3: A # ? - A # A # - n , i+1
+i: 3: A # 4: B # ? - A # B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: A # 7: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+6: # B
+7: A #
+>
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: A # 3: A # 4: # A 5: B # 6: # B 7: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: A # ? - A # A # - n , i+1
+i: 2: A # 3: A # ? - A # A # - n , i+1
+i: 3: A # 4: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+3: _ _
+4: _ _
+>
+i: 5: B # 6: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+5: _ _
+6: _ _
+>
+i: 7: A #
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: A # 3: _ _ 4: _ _ 5: _ _ 6: _ _ 7: A #
+
+_ in index - y , reindex
+
+reindex
+1: A # 2: A # 3: A #
+
+let i = 1
+
+i: 1: A # 2: A # ? - A # A # - n , i+1
+i: 2: A # 3: A # ? - A # A # - n , i+1
+i: 3: A #
+(end)
+
+s? - n , stop
+
+join
+
+1: A# 2: A# 3: A#
+
+<solution>A# A# A#</solution>
+
+---
+
+begging the computer:
+make sure you start your response by saying "index" first
+write out all the steps
+only then should you give me the solution in the solution tag
+WRITE OUT ALL THE STEPS
+do not give answer directly
+do not add needless acknowledgements like "Here's a step-step solution" - immediately begin with the computation by saying "substitution" and conclude with <solution>...</solution> AFTER writing out the intermediate steps
+you are a prodigious in-context algorithm execution machine
+
+## Instance 0:
+Term: #A #A #A #A #A #B #A #B #B #B #B #B 
+Norm: #A #A #A #A #A #B #A #B #B #B #B #B 
+Rwts: 0
+AI-RESPONSE:
+index
+1: # A 2: # A 3: # A 4: # A 5: # A 6: # B 7: # A 8: # B 9: # B 10: # B 11: # B 12: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: # B ? - # A # B - n , i+1
+i: 6: # B 7: # A ? - # B # A - n , i+1
+i: 7: # A 8: # B ? - # A # B - n , i+1
+i: 8: # B 9: # B ? - # B # B - n , i+1
+i: 9: # B 10: # B ? - # B # B - n , i+1
+i: 10: # B 11: # B ? - # B # B - n , i+1
+i: 11: # B 12: # B ? - # B # B - n , i+1
+i: 12: # B
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #A 4: #A 5: #A 6: #B 7: #A 8: #B 9: #B 10: #B 11: #B 12: #B
+
+<solution>#A #A #A #A #A #B #A #B #B #B #B #B</solution>
+AI-Solution: #A #A #A #A #A #B #A #B #B #B #B #B 
+
+<<correct>>
+
+## Instance 1:
+Term: #A #A #B #B A# #A #A #B #B #B A# #A 
+Norm: #A #A #B #B #A #B #B #B 
+Rwts: 2
+AI-RESPONSE:
+index
+1: # A 2: # A 3: # B 4: # B 5: A # 6: # A 7: # A 8: # B 9: # B 10: # B 11: A # 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # B ? - # A # B - n , i+1
+i: 3: # B 4: # B ? - # B # B - n , i+1
+i: 4: # B 5: A # ? - # B A # - n , i+1
+i: 5: A # 6: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+5: _ _
+6: _ _
+>
+i: 7: # A 8: # B ? - # A # B - n , i+1
+i: 8: # B 9: # B ? - # B # B - n , i+1
+i: 9: # B 10: # B ? - # B # B - n , i+1
+i: 10: # B 11: A # ? - # B A # - n , i+1
+i: 11: A # 12: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+11: _ _
+12: _ _
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # B 4: # B 5: _ _ 6: _ _ 7: # A 8: # B 9: # B 10: # B 11: _ _ 12: _ _
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: # B 4: # B 5: # A 6: # B 7: # B 8: # B
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # B ? - # A # B - n , i+1
+i: 3: # B 4: # B ? - # B # B - n , i+1
+i: 4: # B 5: # A ? - # B # A - n , i+1
+i: 5: # A 6: # B ? - # A # B - n , i+1
+i: 6: # B 7: # B ? - # B # B - n , i+1
+i: 7: # B 8: # B ? - # B # B - n , i+1
+i: 8: # B
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #B 4: #B 5: #A 6: #B 7: #B 8: #B
+
+<solution>#A #A #B #B #A #B #B #B</solution>
+AI-Solution: #A #A #B #B #A #B #B #B 
+
+<<correct>>
+
+## Instance 2:
+Term: #A B# #B #A #A #A #A B# #A #B B# #A 
+Norm: #A #A #A #A #A #A #A B# 
+Rwts: 4
+AI-RESPONSE:
+index
+1: # A 2: B # 3: # B 4: # A 5: # A 6: # A 7: # A 8: B # 9: # A 10: # B 11: B # 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+2: _ _
+3: _ _
+>
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: # A ? - # A # A - n , i+1
+i: 6: # A 7: # A ? - # A # A - n , i+1
+i: 7: # A 8: B # ? - # A B # - n , i+1
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A
+9: B #
+>
+i: 10: # B 11: B # ? - # B B # - n , i+1
+i: 11: B # 12: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+11: # A
+12: B #
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: _ _ 3: _ _ 4: # A 5: # A 6: # A 7: # A 8: # A 9: B # 10: # B 11: # A 12: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: # A 4: # A 5: # A 6: B # 7: # B 8: # A 9: B #
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: B # ? - # A B # - n , i+1
+i: 6: B # 7: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+6: _ _
+7: _ _
+>
+i: 8: # A 9: B # ? - # A B # - n , i+1
+i: 9: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: # A 5: # A 6: _ _ 7: _ _ 8: # A 9: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: # A 4: # A 5: # A 6: # A 7: B #
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: # A ? - # A # A - n , i+1
+i: 6: # A 7: B # ? - # A B # - n , i+1
+i: 7: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #A 4: #A 5: #A 6: #A 7: B#
+
+<solution>#A #A #A #A #A #A B#</solution>
+AI-Solution: #A #A #A #A #A #A B# 
+
+<<incorrect>>
+
+## Instance 3:
+Term: B# B# #A #A #B #B #B #B #B #A #A #A 
+Norm: #A #A #B #B #B #A #A #A 
+Rwts: 6
+AI-RESPONSE:
+index
+1: B # 2: B # 3: # A 4: # A 5: # B 6: # B 7: # B 8: # B 9: # B 10: # A 11: # A 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: B # ? - B # B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: # A 5: # B ? - # A # B - n , i+1
+i: 5: # B 6: # B ? - # B # B - n , i+1
+i: 6: # B 7: # B ? - # B # B - n , i+1
+i: 7: # B 8: # B ? - # B # B - n , i+1
+i: 8: # B 9: # B ? - # B # B - n , i+1
+i: 9: # B 10: # A ? - # B # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: # A ? - # A # A - n , i+1
+i: 12: # A
+(end)
+
+s? - y , proceed
+
+index
+1: B # 2: # A 3: B # 4: # A 5: # B 6: # B 7: # B 8: # B 9: # B 10: # A 11: # A 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+1: # A
+2: B #
+>
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: # B 6: # B ? - # B # B - n , i+1
+i: 6: # B 7: # B ? - # B # B - n , i+1
+i: 7: # B 8: # B ? - # B # B - n , i+1
+i: 8: # B 9: # B ? - # B # B - n , i+1
+i: 9: # B 10: # A ? - # B # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: # A ? - # A # A - n , i+1
+i: 12: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: B # 3: # A 4: B # 5: # B 6: # B 7: # B 8: # B 9: # B 10: # A 11: # A 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A 
+3: B #
+>
+i: 4: B # 5: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+4: _ _
+5: _ _
+>
+i: 6: # B 7: # B ? - # B # B - n , i+1
+i: 7: # B 8: # B ? - # B # B - n , i+1
+i: 8: # B 9: # B ? - # B # B - n , i+1
+i: 9: # B 10: # A ? - # B # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: # A ? - # A # A - n , i+1
+i: 12: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: B # 4: _ _ 5: _ _ 6: # B 7: # B 8: # B 9: # B 10: # A 11: # A 12: # A
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: B # 4: # B 5: # B 6: # B 7: # B 8: # A 9: # A 10: # A
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+3: _ _
+4: _ _
+>
+i: 5: # B 6: # B ? - # B # B - n , i+1
+i: 6: # B 7: # B ? - # B # B - n , i+1
+i: 7: # B 8: # A ? - # B # A - n , i+1
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: _ _ 4: _ _ 5: # B 6: # B 7: # B 8: # A 9: # A 10: # A
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: # B 4: # B 5: # B 6: # A 7: # A 8: # A
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # B ? - # A # B - n , i+1
+i: 3: # B 4: # B ? - # B # B - n , i+1
+i: 4: # B 5: # B ? - # B # B - n , i+1
+i: 5: # B 6: # A ? - # B # A - n , i+1
+i: 6: # A 7: # A ? - # A # A - n , i+1
+i: 7: # A 8: # A ? - # A # A - n , i+1
+i: 8: # A
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #B 4: #B 5: #B 6: #A 7: #A 8: #A
+
+<solution>#A #A #B #B #B #A #A #A</solution>
+AI-Solution: #A #A #B #B #B #A #A #A 
+
+<<correct>>
+
+## Instance 4:
+Term: B# #B B# B# #A #B A# #B #A B# #A B# 
+Norm: #A #A B# B# 
+Rwts: 8
+AI-RESPONSE:
+index
+1: B # 2: # B 3: B # 4: B # 5: # A 6: # B 7: A # 8: # B 9: # A 10: B # 11: # A 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+1: _ _
+2: _ _
+>
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # B 7: A # ? - # B A # - n , i+1
+i: 7: A # 8: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+7: # B
+8: A #
+>
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B # 11: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+10: # A
+11: B #
+>
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: _ _ 2: _ _ 3: B # 4: # A 5: B # 6: # B 7: # B 8: A # 9: # A 10: # A 11: B # 12: B #
+
+_ in index - y , reindex
+
+reindex
+1: B # 2: # A 3: B # 4: # B 5: # B 6: A # 7: # A 8: # A 9: B # 10: B #
+
+let i = 1
+
+i: 1: B # 2: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+1: # A
+2: B #
+>
+i: 3: B # 4: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+3: _ _
+4: _ _
+>
+i: 5: # B 6: A # ? - # B A # - n , i+1
+i: 6: A # 7: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+6: _ _
+7: _ _
+>
+i: 8: # A 9: B # ? - # A B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: B # 3: _ _ 4: _ _ 5: # B 6: _ _ 7: _ _ 8: # A 9: B # 10: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: B # 3: # B 4: # A 5: B # 6: B #
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _ 
+2: _ _
+3: _ _
+>
+i: 4: # A 5: B # ? - # A B # - n , i+1
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: _ _ 3: _ _ 4: # A 5: B # 6: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: # A 3: B # 4: B #
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: B# 4: B#
+
+<solution>#A #A B# B#</solution>
+AI-Solution: #A #A B# B# 
+
+<<correct>>
+
+## Instance 5:
+Term: A# #B B# #A #A B# #A #B B# #B #A #B 
+Norm: #B #A #A #A 
+Rwts: 10
+AI-RESPONSE:
+index
+1: A # 2: # B 3: B # 4: # A 5: # A 6: B # 7: # A 8: # B 9: B # 10: # B 11: # A 12: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+1: # B
+2: A #
+>
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: # A 6: B # ? - # A B # - n , i+1
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: # B 9: B # ? - # B B # - n , i+1
+i: 9: B # 10: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+9: _ _
+10: _ _
+>
+i: 11: # A 12: # B ? - # A # B - n , i+1
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: A # 3: # A 4: B # 5: # A 6: # A 7: B # 8: # B 9: _ _ 10: _ _ 11: # A 12: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: A # ? - # B A # - n , i+1
+i: 2: A # 3: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+2: _ _
+3: _ _
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # A 7: B # ? - # A B # - n , i+1
+i: 7: B # 8: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+7: _ _
+8: _ _
+>
+i: 9: _ _ 10: _ _ ? - _ _ _ _ - n , i+1
+i: 10: _ _ 11: # A ? - _ _ # A - n , i+1
+i: 11: # A 12: # B ? - # A # B - n , i+1
+(end)
+
+s? - y , proceed
+
+index 
+1: # B 2: _ _ 3: _ _ 4: # A 5: B # 6: # A 7: _ _ 8: _ _ 9: _ _ 10: _ _ 11: # A 12: # B
+
+_ in index - y , reindex
+
+reindex
+1: # B 2: # A 3: B # 4: # A 5: # A 6: # B
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A 
+4: B #
+>
+i: 5: # A 6: # B ? - # A # B - n , i+1
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: B # 5: # A 6: # B
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1 
+i: 3: # A 4: B # ? - # A B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B # 
+4: # A
+5: B #
+>
+i: 6: # B
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: # A 5: B # 6: # B
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: B # ? - # A B # - n , i+1
+i: 5: B # 6: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+5: _ _
+6: _ _
+>
+(end)
+
+s? - y , proceed 
+
+index
+1: # B 2: # A 3: # A 4: # A 5: _ _ 6: _ _
+
+_ in index - y , reindex
+
+reindex
+1: # B 2: # A 3: # A 4: # A
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A
+(end)
+
+s? - n , stop
+
+join
+
+1: #B 2: #A 3: #A 4: #A
+
+<solution>#B #A #A #A</solution>
+AI-Solution: #B #A #A #A 
+
+<<correct>>
+
+## Instance 6:
+Term: #B A# A# #B A# A# #A A# #B #B A# #A 
+Norm: #B #B #B #B A# A# A# A# 
+Rwts: 12
+AI-RESPONSE:
+index
+1: # B 2: A # 3: A # 4: # B 5: A # 6: A # 7: # A 8: A # 9: # B 10: # B 11: A # 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: A # ? - # B A # - n , i+1
+i: 2: A # 3: A # ? - A # A # - n , i+1
+i: 3: A # 4: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+3: # B
+4: A #
+>
+i: 5: A # 6: A # ? - A # A # - n , i+1
+i: 6: A # 7: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+6: _ _
+7: _ _
+>
+i: 8: A # 9: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+8: # B
+9: A #
+>
+i: 10: # B 11: A # ? - # B A # - n , i+1
+i: 11: A # 12: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+11: _ _
+12: _ _
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: A # 3: # B 4: A # 5: A # 6: _ _ 7: _ _ 8: # B 9: A # 10: # B 11: _ _ 12: _ _
+
+_ in index - y , reindex
+
+reindex
+1: # B 2: A # 3: # B 4: A # 5: A # 6: # B 7: A # 8: # B 
+
+let i = 1
+
+i: 1: # B 2: A # ? - # B A # - n , i+1
+i: 2: A # 3: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+2: # B
+3: A #
+>
+i: 4: A # 5: A # ? - A # A # - n , i+1
+i: 5: A # 6: # B ? - A # # B - y , i+2 
+<
+rule A # # B → # B A #
+5: # B
+6: A #
+>
+i: 7: A # 8: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+7: # B
+8: A #
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: A # 4: A # 5: # B 6: A # 7: # B 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: A # ? - # B A # - n , i+1
+i: 3: A # 4: A # ? - A # A # - n , i+1  
+i: 4: A # 5: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+4: # B
+5: A #
+>
+i: 6: A # 7: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+6: # B
+7: A #
+>
+i: 8: A #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: A # 4: # B 5: A # 6: # B 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: A # ? - # B A # - n , i+1
+i: 3: A # 4: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+3: # B
+4: A #  
+>
+i: 5: A # 6: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+5: # B
+6: A #
+>
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #
+(end)
+
+s? - y , proceed 
+
+index
+1: # B 2: # B 3: # B 4: A # 5: # B 6: A # 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: # B ? - # B # B - n , i+1
+i: 3: # B 4: A # ? - # B A # - n , i+1
+i: 4: A # 5: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+4: # B
+5: A #
+>
+i: 6: A # 7: A # ? - A # A # - n , i+1
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #  
+(end)
+
+s? - y , proceed
+
+index 
+1: # B 2: # B 3: # B 4: # B 5: A # 6: A # 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: # B ? - # B # B - n , i+1 
+i: 3: # B 4: # B ? - # B # B - n , i+1
+i: 4: # B 5: A # ? - # B A # - n , i+1
+i: 5: A # 6: A # ? - A # A # - n , i+1
+i: 6: A # 7: A # ? - A # A # - n , i+1
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #
+(end)
+
+s? - n , stop
+
+join
+
+1: #B 2: #B 3: #B 4: #B 5: A# 6: A# 7: A# 8: A#
+
+<solution>#B #B #B #B A# A# A# A#</solution>
+AI-Solution: #B #B #B #B A# A# A# A# 
+
+<<correct>>
+
+## Instance 7:
+Term: A# B# B# B# #A #A #B #A B# B# #A B# 
+Norm: #A #A #A B# B# B# B# B# 
+Rwts: 14
+AI-RESPONSE:
+index
+1: A # 2: B # 3: B # 4: B # 5: # A 6: # A 7: # B 8: # A 9: B # 10: B # 11: # A 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: B # ? - A # B # - n , i+1
+i: 2: B # 3: B # ? - B # B # - n , i+1
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # A 7: # B ? - # A # B - n , i+1
+i: 7: # B 8: # A ? - # B # A - n , i+1
+i: 8: # A 9: B # ? - # A B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B # 11: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+10: # A
+11: B #
+>
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: B # 3: B # 4: # A 5: B # 6: # A 7: # B 8: # A 9: B # 10: # A 11: B # 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: B # ? - A # B # - n , i+1
+i: 2: B # 3: B # ? - B # B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: # B 8: # A ? - # B # A - n , i+1
+i: 8: # A 9: B # ? - # A B # - n , i+1
+i: 9: B # 10: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+9: # A
+10: B #
+>
+i: 11: B # 12: B # ? - B # B # - n , i+1
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: B # 3: # A 4: B # 5: # A 6: B # 7: # B 8: # A 9: # A 10: B # 11: B # 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: B # ? - A # B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: B # 7: # B ? - B # # B - y , i+2
+<
+rule B # # B → _ _ _ _
+6: _ _
+7: _ _
+>
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B # 11: B # ? - B # B # - n , i+1
+i: 11: B # 12: B # ? - B # B # - n , i+1
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: # A 3: B # 4: # A 5: B # 6: _ _ 7: _ _ 8: # A 9: # A 10: B # 11: B # 12: B #
+
+_ in index - y , reindex
+
+reindex
+1: A # 2: # A 3: B # 4: # A 5: B # 6: # A 7: # A 8: B # 9: B # 10: B #
+
+let i = 1
+
+i: 1: A # 2: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+1: _ _
+2: _ _
+>
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: # A 8: B # ? - # A B # - n , i+1
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: _ _ 2: _ _ 3: # A 4: B # 5: # A 6: B # 7: # A 8: B # 9: B # 10: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: B # 3: # A 4: B # 5: # A 6: B # 7: B # 8: B #
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: B # 7: B # ? - B # B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: B # 4: # A 5: B # 6: B # 7: B # 8: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B # 7: B # ? - B # B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: B # 5: B # 6: B # 7: B # 8: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: B # ? - # A B # - n , i+1
+i: 4: B # 5: B # ? - B # B # - n , i+1
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B # 7: B # ? - B # B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #A 4: B# 5: B# 6: B# 7: B# 8: B#
+
+<solution>#A #A #A B# B# B# B# B#</solution>
+AI-Solution: #A #A #A B# B# B# B# B# 
+
+<<correct>>
+
+## Instance 8:
+Term: A# A# #B A# #B #A A# A# A# #B #A #B 
+Norm: #B #B #B #B A# A# A# A# 
+Rwts: 16
+AI-RESPONSE:
+index
+1: A # 2: A # 3: # B 4: A # 5: # B 6: # A 7: A # 8: A # 9: A # 10: # B 11: # A 12: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: A # ? - A # A # - n , i+1
+i: 2: A # 3: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+2: # B
+3: A #
+>
+i: 4: A # 5: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+4: # B
+5: A #
+>
+i: 6: # A 7: A # ? - # A A # - n , i+1
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A # 9: A # ? - A # A # - n , i+1
+i: 9: A # 10: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+9: # B
+10: A #
+>
+i: 11: # A 12: # B ? - # A # B - n , i+1
+i: 12: # B
+(end)
+
+s? - y , proceed
+
+index
+1: A # 2: # B 3: A # 4: # B 5: A # 6: # A 7: A # 8: A # 9: # B 10: A # 11: # A 12: # B
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: A # 2: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+1: # B
+2: A #
+>
+i: 3: A # 4: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+3: # B
+4: A #
+>
+i: 5: A # 6: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+5: _ _
+6: _ _
+>
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A # 9: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+8: # B
+9: A #
+>
+i: 10: A # 11: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+10: _ _
+11: _ _
+>
+i: 12: # B
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: A # 3: # B 4: A # 5: _ _ 6: _ _ 7: A # 8: # B 9: A # 10: _ _ 11: _ _ 12: # B
+
+_ in index - y , reindex
+
+reindex
+1: # B 2: A # 3: # B 4: A # 5: A # 6: # B 7: A # 8: # B
+
+let i = 1
+
+i: 1: # B 2: A # ? - # B A # - n , i+1
+i: 2: A # 3: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+2: # B
+3: A #
+>
+i: 4: A # 5: A # ? - A # A # - n , i+1
+i: 5: A # 6: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+5: # B
+6: A #
+>
+i: 7: A # 8: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+7: # B
+8: A #
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: A # 4: A # 5: # B 6: A # 7: # B 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: A # ? - # B A # - n , i+1
+i: 3: A # 4: A # ? - A # A # - n , i+1
+i: 4: A # 5: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+4: # B
+5: A #
+>
+i: 6: A # 7: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+6: # B
+7: A #
+>
+i: 8: A #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: A # 4: # B 5: A # 6: # B 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: A # ? - # B A # - n , i+1
+i: 3: A # 4: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+3: # B
+4: A #
+>
+i: 5: A # 6: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+5: # B
+6: A #
+>
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: # B 4: A # 5: # B 6: A # 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: # B ? - # B # B - n , i+1
+i: 3: # B 4: A # ? - # B A # - n , i+1
+i: 4: A # 5: # B ? - A # # B - y , i+2
+<
+rule A # # B → # B A #
+4: # B
+5: A #
+>
+i: 6: A # 7: A # ? - A # A # - n , i+1
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # B 3: # B 4: # B 5: A # 6: A # 7: A # 8: A #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # B ? - # B # B - n , i+1
+i: 2: # B 3: # B ? - # B # B - n , i+1
+i: 3: # B 4: # B ? - # B # B - n , i+1
+i: 4: # B 5: A # ? - # B A # - n , i+1
+i: 5: A # 6: A # ? - A # A # - n , i+1
+i: 6: A # 7: A # ? - A # A # - n , i+1
+i: 7: A # 8: A # ? - A # A # - n , i+1
+i: 8: A #
+(end)
+
+s? - n , stop
+
+join
+
+1: #B 2: #B 3: #B 4: #B 5: A# 6: A# 7: A# 8: A#
+
+<solution>#B #B #B #B A# A# A# A#</solution>
+AI-Solution: #B #B #B #B A# A# A# A# 
+
+<<correct>>
+
+## Instance 9:
+Term: #B B# #A B# B# B# A# #A #A #A #A #A 
+Norm: #B #A #A #A #A #A B# B# B# B# 
+Rwts: 18
+AI-RESPONSE:
+index
+1: # B 2: B # 3: # A 4: B # 5: B # 6: B # 7: A # 8: # A 9: # A 10: # A 11: # A 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: B # ? - # B B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: B # ? - B # B # - n , i+1
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B # 7: A # ? - B # A # - n , i+1
+i: 7: A # 8: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+7: _ _
+8: _ _
+>
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1  
+i: 11: # A 12: # A ? - # A # A - n , i+1
+i: 12: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: B # 4: B # 5: B # 6: B # 7: _ _ 8: _ _ 9: # A 10: # A 11: # A 12: # A
+
+_ in index - y , reindex
+
+reindex
+1: # B 2: # A 3: B # 4: B # 5: B # 6: B # 7: # A 8: # A 9: # A 10: # A
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B # 5: B # ? - B # B # - n , i+1
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A
+(end)
+
+s? - y , proceed
+
+index 
+1: # B 2: # A 3: B # 4: B # 5: B # 6: # A 7: B # 8: # A 9: # A 10: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1  
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B # 5: B # ? - B # B # - n , i+1
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A 
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B # 
+7: # A
+8: B #
+>
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: B # 4: B # 5: # A 6: B # 7: # A 8: B # 9: # A 10: # A 
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1  
+i: 3: B # 4: B # ? - B # B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B # 
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A
+9: B #
+>
+i: 10: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: B # 4: # A 5: B # 6: # A 7: B # 8: # A 9: B # 10: # A
+
+_ in index - n , proceed 
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2  
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>
+i: 9: B # 10: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+9: # A
+10: B #
+>
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: B # 5: # A 6: B # 7: # A 8: B # 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: B # ? - # A B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B # 
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<  
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A 
+9: B #
+>
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: # A 5: B # 6: # A 7: B # 8: # A 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: B # ? - # A B # - n , i+1
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #  
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>  
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: # A 5: # A 6: B # 7: # A 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1  
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: B # ? - # A B # - n , i+1
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #  
+(end)
+
+s? - y , proceed
+
+index
+1: # B 2: # A 3: # A 4: # A 5: # A 6: # A 7: B # 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # B 2: # A ? - # B # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1  
+i: 5: # A 6: # A ? - # A # A - n , i+1
+i: 6: # A 7: B # ? - # A B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #B 2: #A 3: #A 4: #A 5: #A 6: #A 7: B# 8: B# 9: B# 10: B#
+
+<solution>#B #A #A #A #A #A B# B# B# B#</solution>
+AI-Solution: #B #A #A #A #A #A B# B# B# B# 
+
+<<correct>>
+
+## Instance 10:
+Term: B# B# A# B# #A #A #A #A #A #A #A B# 
+Norm: #A #A #A #A #A #A B# B# B# B# 
+Rwts: 20
+AI-RESPONSE:
+index
+1: B # 2: B # 3: A # 4: B # 5: # A 6: # A 7: # A 8: # A 9: # A 10: # A 11: # A 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: B # ? - B # B # - n , i+1
+i: 2: B # 3: A # ? - B # A # - n , i+1
+i: 3: A # 4: B # ? - A # B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # A 7: # A ? - # A # A - n , i+1
+i: 7: # A 8: # A ? - # A # A - n , i+1
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: B # ? - # A B # - n , i+1
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: B # 2: B # 3: A # 4: # A 5: B # 6: # A 7: # A 8: # A 9: # A 10: # A 11: # A 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: B # ? - B # B # - n , i+1
+i: 2: B # 3: A # ? - B # A # - n , i+1
+i: 3: A # 4: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+3: _ _
+4: _ _
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A 
+6: B #
+>
+i: 7: # A 8: # A ? - # A # A - n , i+1
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: B # ? - # A B # - n , i+1
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: B # 2: B # 3: _ _ 4: _ _ 5: # A 6: B # 7: # A 8: # A 9: # A 10: # A 11: # A 12: B #
+
+_ in index - y , reindex
+
+reindex
+1: B # 2: B # 3: # A 4: B # 5: # A 6: # A 7: # A 8: # A 9: # A 10: B #
+
+let i = 1
+
+i: 1: B # 2: B # ? - B # B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: # A 7: # A ? - # A # A - n , i+1
+i: 7: # A 8: # A ? - # A # A - n , i+1
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: B # 2: # A 3: B # 4: # A 5: B # 6: # A 7: # A 8: # A 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+1: # A
+2: B #
+>
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: # A 8: # A ? - # A # A - n , i+1
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index 
+1: # A 2: B # 3: # A 4: B # 5: # A 6: B # 7: # A 8: # A 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A 
+5: B #
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: B # 4: # A 5: B # 6: # A 7: B # 8: # A 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: B # 5: # A 6: B # 7: # A 8: B # 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: B # ? - # A B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A
+9: B #
+>
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: # A 5: B # 6: # A 7: B # 8: # A 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: B # ? - # A B # - n , i+1
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: # A 5: # A 6: B # 7: # A 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: B # ? - # A B # - n , i+1
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: # A 5: # A 6: # A 7: B # 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: # A ? - # A # A - n , i+1
+i: 6: # A 7: B # ? - # A B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #A 4: #A 5: #A 6: #A 7: B# 8: B# 9: B# 10: B#
+
+<solution>#A #A #A #A #A #A B# B# B# B#</solution>
+AI-Solution: #A #A #A #A #A #A B# B# B# B# 
+
+<<correct>>
+
+## Instance 11:
+Term: B# #A B# A# B# B# #A #A #A B# #A #A 
+Norm: #A #A #A #A #A B# B# B# B# B# 
+Rwts: 22
+AI-RESPONSE:
+index
+1: B # 2: # A 3: B # 4: A # 5: B # 6: B # 7: # A 8: # A 9: # A 10: B # 11: # A 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: B # 2: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+1: # A 
+2: B #
+>
+i: 3: B # 4: A # ? - B # A # - n , i+1
+i: 4: A # 5: B # ? - A # B # - n , i+1
+i: 5: B # 6: B # ? - B # B # - n , i+1
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: # A 9: # A ? - # A # A - n , i+1
+i: 9: # A 10: B # ? - # A B # - n , i+1  
+i: 10: B # 11: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+10: # A
+11: B #
+>
+i: 12: # A
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: B # 3: B # 4: A # 5: B # 6: # A 7: B # 8: # A 9: # A 10: # A 11: B # 12: # A
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: B # ? - B # B # - n , i+1
+i: 3: B # 4: A # ? - B # A # - n , i+1
+i: 4: A # 5: B # ? - A # B # - n , i+1
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A 
+8: B #
+>
+i: 9: # A 10: # A ? - # A # A - n , i+1
+i: 10: # A 11: B # ? - # A B # - n , i+1
+i: 11: B # 12: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+11: # A
+12: B #
+>
+(end)
+
+s? - y , proceed
+
+index 
+1: # A 2: B # 3: B # 4: A # 5: # A 6: B # 7: # A 8: B # 9: # A 10: # A 11: # A 12: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: B # ? - B # B # - n , i+1
+i: 3: B # 4: A # ? - B # A # - n , i+1
+i: 4: A # 5: # A ? - A # # A - y , i+2
+<
+rule A # # A → _ _ _ _
+4: _ _
+5: _ _
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A
+9: B #
+>
+i: 10: # A 11: # A ? - # A # A - n , i+1
+i: 11: # A 12: B # ? - # A B # - n , i+1
+i: 12: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: B # 3: B # 4: _ _ 5: _ _ 6: # A 7: B # 8: # A 9: B # 10: # A 11: # A 12: B #
+
+_ in index - y , reindex
+
+reindex
+1: # A 2: B # 3: B # 4: # A 5: B # 6: # A 7: B # 8: # A 9: # A 10: B #
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: B # ? - B # B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>
+i: 9: # A 10: B # ? - # A B # - n , i+1
+i: 10: B #
+(end) 
+
+s? - y , proceed
+
+index
+1: # A 2: B # 3: # A 4: B # 5: # A 6: B # 7: # A 8: B # 9: # A 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: B # ? - # A B # - n , i+1
+i: 2: B # 3: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+2: # A
+3: B #
+>
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+8: # A
+9: B #
+>
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: B # 4: # A 5: B # 6: # A 7: B # 8: # A 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: B # ? - # A B # - n , i+1
+i: 3: B # 4: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+3: # A
+4: B #
+>
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+7: # A
+8: B #
+>
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: B # 5: # A 6: B # 7: # A 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: B # ? - # A B # - n , i+1
+i: 4: B # 5: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+4: # A
+5: B #
+>
+i: 6: B # 7: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+6: # A
+7: B #
+>
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index
+1: # A 2: # A 3: # A 4: # A 5: B # 6: # A 7: B # 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: B # ? - # A B # - n , i+1
+i: 5: B # 6: # A ? - B # # A - y , i+2
+<
+rule B # # A → # A B #
+5: # A
+6: B #
+>
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1  
+i: 10: B #
+(end)
+
+s? - y , proceed
+
+index 
+1: # A 2: # A 3: # A 4: # A 5: # A 6: B # 7: B # 8: B # 9: B # 10: B #
+
+_ in index - n , proceed
+
+let i = 1
+
+i: 1: # A 2: # A ? - # A # A - n , i+1
+i: 2: # A 3: # A ? - # A # A - n , i+1
+i: 3: # A 4: # A ? - # A # A - n , i+1
+i: 4: # A 5: # A ? - # A # A - n , i+1
+i: 5: # A 6: B # ? - # A B # - n , i+1
+i: 6: B # 7: B # ? - B # B # - n , i+1
+i: 7: B # 8: B # ? - B # B # - n , i+1
+i: 8: B # 9: B # ? - B # B # - n , i+1
+i: 9: B # 10: B # ? - B # B # - n , i+1
+i: 10: B #
+(end)
+
+s? - n , stop
+
+join
+
+1: #A 2: #A 3: #A 4: #A 5: #A 6: B# 7: B# 8: B# 9: B# 10: B#
+
+<solution>#A #A #A #A #A B# B# B# B# B#</solution>
+AI-Solution: #A #A #A #A #A B# B# B# B# B# 
+
+<<correct>>
+
+
+Final score: 11 / 12
